@@ -11,8 +11,9 @@ from langchain_community.vectorstores import FAISS
 from utils.model_loader import ModelLoader
 from exception.custom_exception import DocumentPortalException
 from logger import GLOBAL_LOGGER as log
-from prompt.prompt_library import PROMPT_REGISTRY
-from model.models import PromptType
+from multi_doc_chat.prompts.prompt_library import PROMPT_REGISTRY
+from multi_doc_chat.model.models import PromptType, ChatAnswer
+from pydantic import ValidationError
 
 
 class ConversationalRAG:
@@ -110,6 +111,13 @@ class ConversationalRAG:
                     "No answer generated", user_input=user_input, session_id=self.session_id
                 )
                 return "no answer generated."
+            # Validate answer type and length using Pydantic model
+            try:
+                validated = ChatAnswer(answer=str(answer))
+                answer = validated.answer
+            except ValidationError as ve:
+                log.error("Invalid chat answer", error=str(ve))
+                raise DocumentPortalException("Invalid chat answer", sys)
             log.info(
                 "Chain invoked successfully",
                 session_id=self.session_id,

@@ -1,5 +1,5 @@
-from pydantic import BaseModel, RootModel
-from typing import List, Union
+from pydantic import BaseModel, Field, RootModel
+from typing import List, Union, Annotated
 from enum import Enum
 
 class Metadata(BaseModel):
@@ -23,3 +23,10 @@ class PromptType(str, Enum):
     DOCUMENT_COMPARISON = "document_comparison"
     CONTEXTUALIZE_QUESTION = "contextualize_question"
     CONTEXT_QA = "context_qa"
+
+
+# -------------------- Simple validators for chat outputs --------------------
+class ChatAnswer(BaseModel):
+    """Validate chat answer type and length."""
+    answer: Annotated[str, Field(min_length=1, max_length=4096)]
+

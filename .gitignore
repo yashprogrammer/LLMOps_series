@@ -38,3 +38,4 @@ logs/
 dist/
 build/
 multi_doc_chat.egg-info/
+flow.excalidraw

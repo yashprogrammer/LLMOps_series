@@ -13,6 +13,8 @@ dependencies = [
     "langchain-google-genai==2.1.8",
     "langchain-groq==0.3.6",
     "langchain-openai==0.2.10",
+    "langsmith>=0.4.28",
+    "openai>=1.107.3",
     "python-dotenv==1.1.1",
     "python-multipart==0.0.20",
 ]

@@ -924,6 +924,8 @@ dependencies = [
     { name = "langchain-google-genai" },
     { name = "langchain-groq" },
     { name = "langchain-openai" },
+    { name = "langsmith" },
+    { name = "openai" },
     { name = "python-dotenv" },
     { name = "python-multipart" },
 ]
@@ -938,6 +940,8 @@ requires-dist = [
     { name = "langchain-google-genai", specifier = "==2.1.8" },
     { name = "langchain-groq", specifier = "==0.3.6" },
     { name = "langchain-openai", specifier = "==0.2.10" },
+    { name = "langsmith", specifier = ">=0.4.28" },
+    { name = "openai", specifier = ">=1.107.3" },
     { name = "python-dotenv", specifier = "==1.1.1" },
     { name = "python-multipart", specifier = "==0.0.20" },
 ]

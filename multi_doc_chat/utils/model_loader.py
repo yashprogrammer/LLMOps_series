@@ -7,6 +7,8 @@ from langchain_google_genai import GoogleGenerativeAIEmbeddings, ChatGoogleGener
 from langchain_groq import ChatGroq
 from logger import GLOBAL_LOGGER as log
 from exception.custom_exception import DocumentPortalException
+from langchain_core.globals import set_llm_cache
+from langchain_core.caches import InMemoryCache
 
 
 class ApiKeyManager:
@@ -65,6 +67,13 @@ class ModelLoader:
         self.api_key_mgr = ApiKeyManager()
         self.config = load_config()
         log.info("YAML config loaded", config_keys=list(self.config.keys()))
+
+        # Enable global in-memory cache for LangChain LLM calls
+        try:
+            set_llm_cache(InMemoryCache())
+            log.info("InMemoryCache enabled for LangChain LLM calls")
+        except Exception as e:
+            log.warning("Failed to enable InMemoryCache", error=str(e))
 
     def load_embeddings(self):
         """

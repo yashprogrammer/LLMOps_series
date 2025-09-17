@@ -10,3 +10,6 @@ docx2txt==0.9
 ipykernel==6.30.0
 python-dotenv==1.1.1
 python-multipart==0.0.20
+
+langsmith
+openai
