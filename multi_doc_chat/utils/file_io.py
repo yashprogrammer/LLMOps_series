@@ -3,14 +3,14 @@ from __future__ import annotations
 import re
 import uuid
 from pathlib import Path
-from datetime import datetime
-from zoneinfo import ZoneInfo
-import uuid
 from typing import Iterable, List
-from logger import GLOBAL_LOGGER as log
+from multi_doc_chat.logger.cutom_logger import CustomLogger
 from exception.custom_exception import DocumentPortalException
 
 SUPPORTED_EXTENSIONS = {".pdf", ".docx", ".txt", ".pptx", ".md", ".csv", ".xlsx", ".xls", ".db", ".sqlite", ".sqlite3"}
+
+# Local logger instance
+log = CustomLogger().get_logger(__name__)
 
 
 def save_uploaded_files(uploaded_files: Iterable, target_dir: Path) -> List[Path]:
@@ -19,7 +19,8 @@ def save_uploaded_files(uploaded_files: Iterable, target_dir: Path) -> List[Path
         target_dir.mkdir(parents=True, exist_ok=True)
         saved: List[Path] = []
         for uf in uploaded_files:
-            name = getattr(uf, "name", "file")
+            # Handle Starlette UploadFile (has .filename and .file) and generic objects (have .name)
+            name = getattr(uf, "filename", getattr(uf, "name", "file"))
             ext = Path(name).suffix.lower()
             if ext not in SUPPORTED_EXTENSIONS:
                 log.warning("Unsupported file skipped", filename=name)
@@ -30,10 +31,25 @@ def save_uploaded_files(uploaded_files: Iterable, target_dir: Path) -> List[Path
             fname = f"{uuid.uuid4().hex[:8]}{ext}"
             out = target_dir / fname
             with open(out, "wb") as f:
-                if hasattr(uf, "read"):
-                    f.write(uf.read())
+                # Prefer underlying file buffer when available (e.g., Starlette UploadFile.file)
+                if hasattr(uf, "file") and hasattr(uf.file, "read"):
+                    f.write(uf.file.read())
+                elif hasattr(uf, "read"):
+                    data = uf.read()
+                    # If a memoryview is returned, convert to bytes; otherwise assume bytes
+                    if isinstance(data, memoryview):
+                        data = data.tobytes()
+                    f.write(data)
                 else:
-                    f.write(uf.getbuffer())  # fallback
+                    # Fallback for objects exposing a getbuffer()
+                    buf = getattr(uf, "getbuffer", None)
+                    if callable(buf):
+                        data = buf()
+                        if isinstance(data, memoryview):
+                            data = data.tobytes()
+                        f.write(data)
+                    else:
+                        raise ValueError("Unsupported uploaded file object; no readable interface")
             saved.append(out)
             log.info("File saved for ingestion", uploaded=name, saved_as=str(out))
         return saved
