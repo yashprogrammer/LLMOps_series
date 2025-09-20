@@ -12,3 +12,18 @@ class ChatAnswer(BaseModel):
 class PromptType(str, Enum):
     CONTEXTUALIZE_QUESTION = "contextualize_question"
     CONTEXT_QA = "context_qa"
+
+
+class UploadResponse(BaseModel):
+    session_id: str
+    indexed: bool
+    message: str | None = None
+
+
+class ChatRequest(BaseModel):
+    session_id: str
+    message: str
+
+
+class ChatResponse(BaseModel):
+    answer: str
