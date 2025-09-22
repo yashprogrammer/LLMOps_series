@@ -208,8 +208,16 @@ Notes:
 ---
 
 ### Acceptance Criteria
-- Exactly 5 unit tests pass locally and in CI.
-- Integration tests for both `/upload` and `/chat` pass locally and in CI.
-- CI workflow runs on push and pull_request events targeting `main` and executes the test suite successfully.
+- Exactly 5 unit tests pass locally and in CI. [DONE]
+- Integration tests for both `/upload` and `/chat` pass locally and in CI. [DONE]
+- CI workflow runs on push and pull_request events targeting `main` and executes the test suite successfully. [DONE]
+
+### Implementation Notes (Progress Log)
+- Added tests under `tests/` with fixtures in `tests/conftest.py` that stub `ModelLoader`, `ChatIngestor`, and `ConversationalRAG`, and provide temp dirs and session isolation.
+- Implemented 5 unit tests total by consolidating retrieval error-handling cases into one test function as allowed by the plan notes. Removed the trivial `document_ops` adapter test to keep the count at exactly five.
+- Implemented integration tests for `/upload` and `/chat` with deterministic stubs.
+- Adjusted `main.upload` signature to `File(None)` so we can return 400 on missing files.
+- Fixed logger export and typo: ensured `GLOBAL_LOGGER` is exposed and added `custom_logger.py` with backward-compatible import from `__init__.py`.
+- Added `pytest.ini` and GitHub Actions workflow `.github/workflows/ci.yml` with required env vars and `PYTHONPATH`.
 
 

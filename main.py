@@ -52,7 +52,7 @@ def home(request: Request) -> HTMLResponse:
     return templates.TemplateResponse("index.html", {"request": request})
 
 @app.post("/upload", response_model=UploadResponse)
-async def upload(files: List[UploadFile] = File(...)) -> UploadResponse:
+async def upload(files: List[UploadFile] = File(None)) -> UploadResponse:
     if not files:
         raise HTTPException(status_code=400, detail="No files uploaded")
 
