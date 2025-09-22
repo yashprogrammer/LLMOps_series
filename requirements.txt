@@ -8,6 +8,7 @@ langchain-core==0.3.72
 langchain-groq==0.3.6
 langchain-google-genai==2.1.8
 langchain-openai==0.2.10
+faiss-cpu
 
 docx2txt==0.9
 ipykernel==6.30.0
