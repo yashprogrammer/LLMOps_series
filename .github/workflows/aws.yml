@@ -1,7 +1,7 @@
 name: CI/CD to ECS Fargate
 on:
   workflow_run:
-    workflows: ["Run tests"] # Match the name in your ci.yaml
+    workflows: ["CI"] # Must match the "name" field in ci.yml
     branches:
       - main
       - DeployOnAWS
