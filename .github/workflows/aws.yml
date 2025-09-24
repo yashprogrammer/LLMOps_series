@@ -2,6 +2,9 @@ name: CI/CD to ECS Fargate
 on:
   workflow_run:
     workflows: ["CI"] # Match the name in your ci.yaml
+    branches:
+      - main
+      - DeployOnAWS
     types:
       - completed
 env:
@@ -9,7 +12,7 @@ env:
   ECR_REPOSITORY: llmopsrepo
   ECS_SERVICE: llmops-service
   ECS_CLUSTER: llmops-cluster
-  ECS_TASK_DEFINITION: .github/workflows/task_definition.json
+  ECS_TASK_DEFINITION: .github/workflows/task_defination.json
   CONTAINER_NAME: llmops-container
 
 permissions:
@@ -19,7 +22,7 @@ permissions:
 jobs:
   check-status:
     runs-on: ubuntu-latest
-    if: ${{github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main'}}
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
       - name: CI passed on main branch
         run: echo "CI passed on main branch, proceeding to build and deploy."
@@ -72,7 +75,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v1
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
