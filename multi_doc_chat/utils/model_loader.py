@@ -15,6 +15,20 @@ class ApiKeyManager:
 
     def __init__(self):
         self.api_keys = {}
+        raw = os.getenv("apikeyliveclass")
+
+        if raw:
+            try:
+                parsed = json.loads(raw)
+                if not isinstance(parsed, dict):
+                    raise ValueError("API_KEYS is not a valid JSON object")
+                self.api_keys = parsed
+                log.info("Loaded API_KEYS from ECS secret")
+            except Exception as e:
+                log.warning("Failed to parse API_KEYS as JSON", error=str(e))
+
+
+
 
         for key in self.REQUIRED_KEYS:
             if not self.api_keys.get(key):
