@@ -10,11 +10,11 @@ on:
   workflow_call:
 env:
   AWS_REGION: us-east-1
-  ECR_REPOSITORY: llmopsrepo
-  ECS_SERVICE: llmops-service
-  ECS_CLUSTER: llmops-cluster
+  ECR_REPOSITORY: llmopsrepolive
+  ECS_SERVICE: llmops-live-service
+  ECS_CLUSTER: llmops-live-cluster
   ECS_TASK_DEFINITION: .github/workflows/task_defination.json
-  CONTAINER_NAME: llmops-container
+  CONTAINER_NAME: llmops-live-container
 
 permissions:
   id-token: write
