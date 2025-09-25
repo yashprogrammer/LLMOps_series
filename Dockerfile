@@ -9,16 +9,23 @@ ENV PYTHONUNBUFFERED=1
 WORKDIR /app
 
 # Install OS dependencies
-RUN apt-get update && apt-get install -y build-essential poppler-utils && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y build-essential poppler-utils curl && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements
-COPY requirements.txt .
+# Install uv (Python package/dependency manager)
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+ENV PATH="/root/.local/bin:$PATH"
+ENV UV_LINK_MODE=copy
+ENV PYTHONPATH="/app:/app/multi_doc_chat"
+
+# Copy dependency manifests for better layer caching
+COPY requirements.txt ./
+
+# Install dependencies into the system interpreter using uv pip
+RUN uv pip install --system -r requirements.txt
 
 # Copy project files
 COPY . .
 
-# Install dependencies
-RUN pip install --no-cache-dir -r requirements.txt
 
 # Expose port
 EXPOSE 8080
