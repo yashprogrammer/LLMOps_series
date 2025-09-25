@@ -1,10 +1,7 @@
 from __future__ import annotations
-
-
 import os
 from pathlib import Path
 from typing import Dict, List
-
 
 from fastapi import FastAPI, File, UploadFile, HTTPException, Request
 from fastapi.responses import HTMLResponse
@@ -12,8 +9,6 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
-from multi_doc_chat.model.models import UploadResponse, ChatResponse, ChatRequest
-from multi_doc_chat.utils.document_ops import FastAPIFileAdapter
 
 from multi_doc_chat.src.document_ingestion.data_ingestion import ChatIngestor
 from multi_doc_chat.src.document_chat.retrieval import ConversationalRAG
@@ -21,9 +16,12 @@ from langchain_core.messages import HumanMessage, AIMessage
 from multi_doc_chat.exception.custom_exception import DocumentPortalException
 
 
-
+# ----------------------------
+# FastAPI initialization
+# ----------------------------
 app = FastAPI(title="MultiDocChat", version="0.1.0")
 
+# CORS (optional for local dev)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -31,7 +29,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 
 # Static and templates
 BASE_DIR = Path(__file__).resolve().parent
@@ -41,15 +38,56 @@ app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
 templates = Jinja2Templates(directory=str(templates_dir))
 
 
+# ----------------------------
+# Simple in-memory chat history
+# ----------------------------
 SESSIONS: Dict[str, List[dict]] = {}
 
+
+# ----------------------------
+# Adapters
+# ----------------------------
+class FastAPIFileAdapter:
+    """Adapt FastAPI UploadFile to a simple object with .name and .getbuffer()."""
+    def __init__(self, uf: UploadFile):
+        self._uf = uf
+        self.name = uf.filename or "file"
+
+    def getbuffer(self) -> bytes:
+        self._uf.file.seek(0)
+        return self._uf.file.read()
+
+
+# ----------------------------
+# Models
+# ----------------------------
+class UploadResponse(BaseModel):
+    session_id: str
+    indexed: bool
+    message: str | None = None
+
+
+class ChatRequest(BaseModel):
+    session_id: str
+    message: str
+
+
+class ChatResponse(BaseModel):
+    answer: str
+
+
+# ----------------------------
+# Routes
+# ----------------------------
 @app.get("/health")
 def health() -> Dict[str, str]:
     return {"status": "ok"}
 
+
 @app.get("/", response_class=HTMLResponse)
 def home(request: Request) -> HTMLResponse:
     return templates.TemplateResponse("index.html", {"request": request})
+
 
 @app.post("/upload", response_model=UploadResponse)
 async def upload(files: List[UploadFile] = File(...)) -> UploadResponse:
@@ -74,6 +112,7 @@ async def upload(files: List[UploadFile] = File(...)) -> UploadResponse:
         raise HTTPException(status_code=500, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Upload failed: {e}")
+
 
 @app.post("/chat", response_model=ChatResponse)
 async def chat(req: ChatRequest) -> ChatResponse:
@@ -115,10 +154,8 @@ async def chat(req: ChatRequest) -> ChatResponse:
         raise HTTPException(status_code=500, detail=f"Chat failed: {e}")
 
 
-
-
-
+# Uvicorn entrypoint for `python main.py` (optional)
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0")
-    port= int((os.getenv("PORT", 8000)), reload=True)
+    uvicorn.run("main:app", host="0.0.0.0", port=int(os.getenv("PORT", "8000")), reload=True)
+
