@@ -57,11 +57,22 @@ class ConversationalRAG:
         index_path: str,
         k: int = 5,
         index_name: str = "index",
-        search_type: str = "similarity",
+        search_type: str = "mmr",
+        fetch_k: int = 20,
+        lambda_mult: float = 0.5,
         search_kwargs: Optional[Dict[str, Any]] = None,
     ):
         """
         Load FAISS vectorstore from disk and build retriever + LCEL chain.
+        
+        Args:
+            index_path: Path to FAISS index directory
+            k: Number of documents to return
+            index_name: Name of the index file
+            search_type: Type of search ("similarity", "mmr", "similarity_score_threshold")
+            fetch_k: Number of documents to fetch before MMR re-ranking (only for MMR)
+            lambda_mult: Diversity parameter for MMR (0=max diversity, 1=max relevance)
+            search_kwargs: Custom search kwargs (overrides other parameters if provided)
         """
         try:
             if not os.path.isdir(index_path):
@@ -77,6 +88,9 @@ class ConversationalRAG:
 
             if search_kwargs is None:
                 search_kwargs = {"k": k}
+                if search_type == "mmr":
+                    search_kwargs["fetch_k"] = fetch_k
+                    search_kwargs["lambda_mult"] = lambda_mult
 
             self.retriever = vectorstore.as_retriever(
                 search_type=search_type, search_kwargs=search_kwargs
@@ -87,7 +101,10 @@ class ConversationalRAG:
                 "FAISS retriever loaded successfully",
                 index_path=index_path,
                 index_name=index_name,
+                search_type=search_type,
                 k=k,
+                fetch_k=fetch_k if search_type == "mmr" else None,
+                lambda_mult=lambda_mult if search_type == "mmr" else None,
                 session_id=self.session_id,
             )
             return self.retriever
