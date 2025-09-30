@@ -18,11 +18,9 @@ dependencies = [
     "langchain-openai==0.2.10",
     "langsmith>=0.4.28",
     "openai>=1.107.3",
+    "pandas>=2.3.3",
     "python-dotenv==1.1.1",
     "python-multipart==0.0.20",
-    "fastapi==0.115.6",
-    "uvicorn==0.32.1",
-    "jinja2==3.1.4",
     "structlog>=25.4.0",
     "uvicorn==0.32.1",
 ]

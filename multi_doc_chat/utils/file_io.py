@@ -5,7 +5,7 @@ import uuid
 from pathlib import Path
 from typing import Iterable, List
 from multi_doc_chat.logger.cutom_logger import CustomLogger
-from exception.custom_exception import DocumentPortalException
+from multi_doc_chat.exception.custom_exception import DocumentPortalException
 
 SUPPORTED_EXTENSIONS = {".pdf", ".docx", ".txt", ".pptx", ".md", ".csv", ".xlsx", ".xls", ".db", ".sqlite", ".sqlite3"}
 

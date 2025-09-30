@@ -4,14 +4,14 @@ from typing import Iterable, List, Optional, Dict, Any
 from langchain.schema import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import FAISS
-from utils.model_loader import ModelLoader
-from logger import GLOBAL_LOGGER as log
-from exception.custom_exception import DocumentPortalException
+from multi_doc_chat.utils.model_loader import ModelLoader
+from multi_doc_chat.logger import GLOBAL_LOGGER as log
+from multi_doc_chat.exception.custom_exception import DocumentPortalException
 import json
 import uuid
 from datetime import datetime
-from utils.file_io import save_uploaded_files
-from utils.document_ops import load_documents
+from multi_doc_chat.utils.file_io import save_uploaded_files
+from multi_doc_chat.utils.document_ops import load_documents
 import hashlib
 import sys
 
