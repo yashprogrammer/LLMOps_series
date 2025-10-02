@@ -4,14 +4,14 @@ from typing import Iterable, List, Optional, Dict, Any
 from langchain.schema import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import FAISS
-from utils.model_loader import ModelLoader
-from logger import GLOBAL_LOGGER as log
-from exception.custom_exception import DocumentPortalException
+from multi_doc_chat.utils.model_loader import ModelLoader
+from multi_doc_chat.logger import GLOBAL_LOGGER as log
+from multi_doc_chat.exception.custom_exception import DocumentPortalException
 import json
 import uuid
 from datetime import datetime
-from utils.file_io import save_uploaded_files
-from utils.document_ops import load_documents
+from multi_doc_chat.utils.file_io import save_uploaded_files
+from multi_doc_chat.utils.document_ops import load_documents
 import hashlib
 import sys
 
@@ -71,7 +71,9 @@ class ChatIngestor:
         chunk_size: int = 1000,
         chunk_overlap: int = 200,
         k: int = 5,
-        search_type: str = "similarity"):
+        search_type: str = "mmr",
+        fetch_k: int = 20,
+        lambda_mult: float = 0.5):
         try:
             paths = save_uploaded_files(uploaded_files, self.temp_dir)
             docs = load_documents(paths)
@@ -95,9 +97,13 @@ class ChatIngestor:
             log.info("FAISS index updated", added=added, index=str(self.faiss_dir))
 
             # Configure search parameters based on search type
-
-
             search_kwargs = {"k": k}
+            
+            if search_type == "mmr":
+                # MMR needs fetch_k (docs to fetch) and lambda_mult (diversity parameter)
+                search_kwargs["fetch_k"] = fetch_k
+                search_kwargs["lambda_mult"] = lambda_mult
+                log.info("Using MMR search", k=k, fetch_k=fetch_k, lambda_mult=lambda_mult)
             
             return vs.as_retriever(search_type=search_type, search_kwargs=search_kwargs)
 

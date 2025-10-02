@@ -101,13 +101,18 @@ async def upload(files: List[UploadFile] = File(...)) -> UploadResponse:
         ingestor = ChatIngestor(use_session_dirs=True)
         session_id = ingestor.session_id
 
-        # Save, load, split, embed, and write FAISS index
-        ingestor.built_retriver(uploaded_files=wrapped_files)
+        # Save, load, split, embed, and write FAISS index with MMR
+        ingestor.built_retriver(
+            uploaded_files=wrapped_files,
+            search_type="mmr",
+            fetch_k=20,
+            lambda_mult=0.5
+        )
 
         # Initialize empty history for this session
         SESSIONS[session_id] = []
 
-        return UploadResponse(session_id=session_id, indexed=True, message="Indexing complete")
+        return UploadResponse(session_id=session_id, indexed=True, message="Indexing complete with MMR")
     except DocumentPortalException as e:
         raise HTTPException(status_code=500, detail=str(e))
     except Exception as e:
@@ -124,10 +129,15 @@ async def chat(req: ChatRequest) -> ChatResponse:
         raise HTTPException(status_code=400, detail="Message cannot be empty")
 
     try:
-        # Build RAG and load retriever from persisted FAISS
+        # Build RAG and load retriever from persisted FAISS with MMR
         rag = ConversationalRAG(session_id=session_id)
         index_path = f"faiss_index/{session_id}"
-        rag.load_retriever_from_faiss(index_path=index_path)
+        rag.load_retriever_from_faiss(
+            index_path=index_path,
+            search_type="mmr",
+            fetch_k=20,
+            lambda_mult=0.5
+        )
 
         # Use simple in-memory history and convert to BaseMessage list
         simple = SESSIONS.get(session_id, [])

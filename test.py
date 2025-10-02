@@ -31,10 +31,22 @@ def test_document_ingestion_and_rag():
         # Build index using single-module ChatIngestor
         ci = ChatIngestor(temp_base="data", faiss_base="faiss_index", use_session_dirs=True)
         
-        # Option 1: Use similarity search (default)
-        retriever = ci.built_retriver(uploaded_files, chunk_size=200, chunk_overlap=20, k=5)
+        # Using MMR (Maximal Marginal Relevance) for diverse results
+        # MMR parameters:
+        # - fetch_k: Number of documents to fetch before MMR re-ranking (20)
+        # - lambda_mult: Diversity parameter (0=max diversity, 1=max relevance, 0.5=balanced)
+        retriever = ci.built_retriver(
+            uploaded_files, 
+            chunk_size=200, 
+            chunk_overlap=20, 
+            k=5,
+            search_type="mmr",
+            fetch_k=20,
+            lambda_mult=0.5
+        )
         
-        # Option 2: Use MMR (Maximal Marginal Relevance) for diverse results
+        # Alternative: Use similarity search instead of MMR
+        # retriever = ci.built_retriver(uploaded_files, chunk_size=200, chunk_overlap=20, k=5, search_type="similarity")
 
         # Close file handles
         for f in uploaded_files:
@@ -46,8 +58,16 @@ def test_document_ingestion_and_rag():
         session_id = ci.session_id
         index_dir = os.path.join("faiss_index", session_id)
 
+        # Load RAG with MMR search
         rag = ConversationalRAG(session_id=session_id)
-        rag.load_retriever_from_faiss(index_path=index_dir, k=5, index_name=os.getenv("FAISS_INDEX_NAME", "index"))
+        rag.load_retriever_from_faiss(
+            index_path=index_dir, 
+            k=5, 
+            index_name=os.getenv("FAISS_INDEX_NAME", "index"),
+            search_type="mmr",
+            fetch_k=20,
+            lambda_mult=0.5
+        )
 
         # Interactive multi-turn chat loop
         chat_history = []
